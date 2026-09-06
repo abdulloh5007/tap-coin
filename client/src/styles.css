@@ -1,0 +1,284 @@
+:root {
+  --bg: #070707;
+  --fg: #f3f3f3;
+  --muted: #7d7d7d;
+  --hair: #222;
+  --dim: #111;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+body {
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+input,
+button {
+  font: inherit;
+  color: inherit;
+}
+
+input {
+  user-select: text;
+}
+
+.num {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.app {
+  min-height: 100%;
+  min-height: 100dvh;
+}
+
+.auth {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 32px 24px 48px;
+  max-width: 360px;
+  margin: 0 auto;
+  gap: 40px;
+}
+
+.brand {
+  letter-spacing: 0.28em;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.auth h1 {
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  margin-top: 12px;
+}
+
+.auth p.lead {
+  color: var(--muted);
+  margin-top: 8px;
+  line-height: 1.45;
+  font-size: 14px;
+}
+
+.auth form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth label {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.auth input {
+  width: 100%;
+  margin-top: 6px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--hair);
+  padding: 10px 0;
+  outline: none;
+}
+
+.auth input:focus {
+  border-bottom-color: var(--fg);
+}
+
+.auth button[type="submit"] {
+  margin-top: 16px;
+  background: var(--fg);
+  color: var(--bg);
+  border: 0;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.auth button[type="submit"]:disabled {
+  opacity: 0.5;
+}
+
+.ghost {
+  background: none;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 8px 0;
+  text-align: left;
+}
+
+.error {
+  color: #cfcfcf;
+  font-size: 13px;
+  min-height: 1.2em;
+}
+
+.shell {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto auto minmax(140px, 28vh) 1fr auto;
+  cursor: pointer;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px 8px;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.top button {
+  background: none;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.price-block {
+  padding: 8px 20px 12px;
+}
+
+.price-block .label {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.price {
+  font-size: clamp(28px, 8vw, 44px);
+  letter-spacing: -0.04em;
+  font-weight: 500;
+  line-height: 1.15;
+  margin-top: 6px;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 20px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.meta b {
+  color: var(--fg);
+  font-weight: 500;
+}
+
+.chart-wrap {
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+  position: relative;
+  min-height: 140px;
+}
+
+.chart-wrap canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tap-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.tap-zone .hint {
+  color: var(--muted);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.pulse {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgba(243, 243, 243, 0.45);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: ring 420ms ease-out forwards;
+  pointer-events: none;
+}
+
+.floater {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 0);
+  color: var(--fg);
+  font-size: 13px;
+  animation: float 700ms ease-out forwards;
+  pointer-events: none;
+}
+
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px calc(16px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--hair);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.bottom b {
+  display: block;
+  color: var(--fg);
+  font-weight: 500;
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+@keyframes ring {
+  to {
+    opacity: 0;
+    width: 88px;
+    height: 88px;
+  }
+}
+
+@keyframes float {
+  to {
+    transform: translate(-50%, -28px);
+    opacity: 0;
+  }
+}
+
+.shell.hit .price {
+  opacity: 0.82;
+}
