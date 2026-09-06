@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { PriceChart } from "../components/PriceChart.tsx"
 import {
   getToken,
@@ -24,9 +24,13 @@ export function Main({ onLogout }: { onLogout: () => void }) {
   const [pulses, setPulses] = useState<Pulse[]>([])
   const [floaters, setFloaters] = useState<Floater[]>([])
   const pending = useRef(0)
+  const inFlight = useRef(0)
   const wsRef = useRef<WebSocket | null>(null)
   const gasRef = useRef(1)
   const idRef = useRef(0)
+  const [extra, setExtra] = useState(0)
+
+  const syncExtra = () => setExtra(pending.current + inFlight.current)
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000)
@@ -51,6 +55,7 @@ export function Main({ onLogout }: { onLogout: () => void }) {
           setPoints(msg.history.length ? msg.history : [{ ts: msg.ts, price: msg.price }])
         }
         if (msg.type === "tick") {
+          inFlight.current = 0
           gasRef.current = msg.gasolinePerTap
           setSnap({
             price: msg.price,
@@ -60,6 +65,7 @@ export function Main({ onLogout }: { onLogout: () => void }) {
             session: msg.session,
             me: msg.me,
           })
+          setExtra(pending.current)
           setPoints((prev) => {
             const next = [...prev, { ts: msg.ts, price: msg.price }]
             const cut = msg.ts - 5 * 60 * 1000
@@ -68,7 +74,7 @@ export function Main({ onLogout }: { onLogout: () => void }) {
         }
       }
       ws.onclose = () => {
-        wsRef.current = null
+        if (wsRef.current === ws) wsRef.current = null
         if (!stopped) retry = setTimeout(connect, 800)
       }
     }
@@ -77,11 +83,11 @@ export function Main({ onLogout }: { onLogout: () => void }) {
     const flush = setInterval(() => {
       const n = pending.current
       if (n <= 0) return
-      pending.current = 0
       const ws = wsRef.current
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: "taps", n }))
-      }
+      if (!ws || ws.readyState !== WebSocket.OPEN) return
+      pending.current = 0
+      inFlight.current += n
+      ws.send(JSON.stringify({ type: "taps", n }))
     }, 50)
 
     return () => {
@@ -92,10 +98,14 @@ export function Main({ onLogout }: { onLogout: () => void }) {
     }
   }, [])
 
-  const tap = useCallback((e: PointerEvent) => {
-    if ((e.target as HTMLElement).closest("button")) return
-    e.preventDefault()
+  const lastTapAt = useRef(0)
+  const tap = useCallback((e: { target: EventTarget | null; clientX: number; clientY: number }) => {
+    if ((e.target as HTMLElement | null)?.closest?.("button")) return
+    const t = performance.now()
+    if (t - lastTapAt.current < 18) return
+    lastTapAt.current = t
     pending.current += 1
+    syncExtra()
     const id = ++idRef.current
     setHit(true)
     window.setTimeout(() => setHit(false), 80)
@@ -122,7 +132,11 @@ export function Main({ onLogout }: { onLogout: () => void }) {
   }
 
   return (
-    <div className={`shell${hit ? " hit" : ""}`} onPointerDown={tap}>
+    <div
+      className={`shell${hit ? " hit" : ""}`}
+      onPointerDown={tap}
+      onClick={tap}
+    >
       <header className="top">
         <span>Tap Coin</span>
         <button type="button" onClick={logout}>
@@ -169,7 +183,7 @@ export function Main({ onLogout }: { onLogout: () => void }) {
       <footer className="bottom">
         <div>
           мои тапы
-          <b className="num">{formatInt(snap.me.taps)}</b>
+          <b className="num">{formatInt(snap.me.taps + extra)}</b>
         </div>
         <div>
           бензин

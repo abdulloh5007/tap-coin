@@ -139,6 +139,7 @@ input {
   display: grid;
   grid-template-rows: auto auto minmax(140px, 28vh) 1fr auto;
   cursor: pointer;
+  touch-action: none;
 }
 
 .top {
@@ -200,6 +201,7 @@ input {
   border-bottom: 1px solid var(--hair);
   position: relative;
   min-height: 140px;
+  overflow: hidden;
 }
 
 .chart-wrap canvas {
@@ -223,6 +225,7 @@ input {
   letter-spacing: 0.22em;
   text-transform: uppercase;
   font-size: 11px;
+  pointer-events: none;
 }
 
 .pulse {

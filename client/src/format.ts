@@ -1,8 +1,11 @@
 export function formatPrice(n: number): string {
   if (!Number.isFinite(n) || n <= 0) return "0.000000001"
   if (n >= 1) return n.toFixed(6)
-  const digits = n >= 0.01 ? 8 : 12
-  return n.toFixed(digits).replace(/0+$/, "").replace(/\.$/, "")
+  if (n >= 0.0001) return n.toFixed(8).replace(/0+$/, "").replace(/\.$/, "")
+  const [a, b = ""] = n.toFixed(15).split(".")
+  const trimmed = b.replace(/0+$/, "")
+  const dec = (trimmed.length < 9 ? b.slice(0, 9) : trimmed).padEnd(9, "0")
+  return `${a}.${dec}`
 }
 
 export function formatGas(n: number): string {
