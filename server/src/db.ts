@@ -133,7 +133,8 @@ export function commitTick(input: {
   const insertTick = db.prepare(
     "INSERT OR REPLACE INTO ticks(ts, price, taps, active, gasoline_per_tap) VALUES(?, ?, ?, ?, ?)",
   )
-  const tx = db.transaction(() => {
+  db.exec("BEGIN")
+  try {
     metaSet("price", String(input.price))
     metaSet("total_taps", String(input.totalTaps))
     metaSet("total_gasoline", String(input.totalGasoline))
@@ -147,8 +148,11 @@ export function commitTick(input: {
     for (const u of input.userDeltas) {
       applyUser.run(u.taps, u.gasoline, u.id)
     }
-  })
-  tx()
+    db.exec("COMMIT")
+  } catch (err) {
+    db.exec("ROLLBACK")
+    throw err
+  }
 }
 
 export function pruneTicks(olderThanMs: number): void {
