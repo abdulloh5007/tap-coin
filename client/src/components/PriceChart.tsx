@@ -10,7 +10,7 @@ type Props = {
   theme: "dark" | "light"
 }
 
-const AXIS_W = 72
+const AXIS_W = 78
 const PAD_Y = 12
 const MIN_SPAN = 20_000
 const DEF_SPAN = 120_000
@@ -109,7 +109,9 @@ export function PriceChart({ points, type, colors, theme }: Props) {
       const ticks = niceTicks(min, max, 5)
       ctx.font = "10px IBM Plex Mono, ui-monospace, monospace"
       ctx.textBaseline = "middle"
-      for (const tick of ticks) {
+      ctx.lineWidth = 1
+      for (let i = 0; i < ticks.length; i++) {
+        const tick = ticks[i]
         const y = yAt(tick)
         if (y < 8 || y > h - 8) continue
         ctx.strokeStyle = hair
@@ -121,34 +123,56 @@ export function PriceChart({ points, type, colors, theme }: Props) {
         ctx.setLineDash([])
         ctx.beginPath()
         ctx.moveTo(plotW, y)
-        ctx.lineTo(plotW + 6, y)
+        ctx.lineTo(plotW + 8, y)
         ctx.stroke()
         ctx.fillStyle = muted
         ctx.textAlign = "left"
-        ctx.fillText(formatAxisPrice(tick), plotW + 10, y)
+        ctx.fillText(formatAxisPrice(tick), plotW + 12, y)
+        if (i < ticks.length - 1) {
+          const next = ticks[i + 1]
+          for (let k = 1; k <= 4; k++) {
+            const my = yAt(tick + ((next - tick) * k) / 5)
+            if (my < 8 || my > h - 8) continue
+            ctx.strokeStyle = hair
+            ctx.beginPath()
+            ctx.moveTo(plotW, my)
+            ctx.lineTo(plotW + 4, my)
+            ctx.stroke()
+          }
+        }
       }
 
       if (typeRef.current === "bar") {
+        const bucket = bucketMsForSpan(view.current.span)
         const bars = toBars(
-          pts.filter((p) => p.ts >= start - bucketMsForSpan(view.current.span) && p.ts <= end),
-          bucketMsForSpan(view.current.span),
+          pts.filter((p) => p.ts >= start - bucket && p.ts <= end),
+          bucket,
         )
-        const bw = Math.max(2, (plotW / Math.max(2, bars.length)) * 0.62)
+        const bw = Math.max(5, Math.min(18, (plotW / Math.max(2, bars.length)) * 0.7))
         for (const bar of bars) {
-          const x = xAt(bar.ts + bucketMsForSpan(view.current.span) / 2)
+          const x = xAt(bar.ts + bucket / 2)
           if (x < -bw || x > plotW + bw) continue
           const up = bar.close >= bar.open
           ctx.strokeStyle = up ? pal.up : pal.down
-          ctx.lineWidth = 1
+          ctx.lineWidth = 1.5
+          let yH = yAt(bar.high)
+          let yL = yAt(bar.low)
+          const yO = yAt(bar.open)
+          const yC = yAt(bar.close)
+          if (Math.abs(yL - yH) < 6) {
+            const mid = (yH + yL) / 2
+            yH = mid - 3
+            yL = mid + 3
+          }
           ctx.beginPath()
-          ctx.moveTo(x, yAt(bar.high))
-          ctx.lineTo(x, yAt(bar.low))
+          ctx.moveTo(x, yH)
+          ctx.lineTo(x, yL)
           ctx.stroke()
           ctx.beginPath()
-          ctx.moveTo(x - bw / 2, yAt(bar.open))
-          ctx.lineTo(x, yAt(bar.open))
-          ctx.moveTo(x, yAt(bar.close))
-          ctx.lineTo(x + bw / 2, yAt(bar.close))
+          ctx.moveTo(x - bw / 2, yO)
+          ctx.lineTo(x, yO)
+          ctx.moveTo(x, yC)
+          ctx.lineTo(x + bw / 2, yC)
           ctx.stroke()
         }
       } else {
