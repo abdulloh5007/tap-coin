@@ -199,7 +199,7 @@ input {
 
 .price {
   font-size: clamp(28px, 8vw, 44px);
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
   font-weight: 500;
   line-height: 1.15;
   margin-top: 6px;
@@ -261,7 +261,6 @@ input {
   justify-content: center;
   gap: 8px;
   position: relative;
-  overflow: hidden;
 }
 
 .tap-zone .hint {
@@ -273,7 +272,7 @@ input {
 }
 
 .pulse {
-  position: absolute;
+  position: fixed;
   width: 14px;
   height: 14px;
   border: 1px solid color-mix(in srgb, var(--fg) 45%, transparent);
@@ -281,16 +280,18 @@ input {
   transform: translate(-50%, -50%);
   animation: ring 420ms ease-out forwards;
   pointer-events: none;
+  z-index: 40;
 }
 
 .floater {
-  position: absolute;
-  left: 50%;
-  transform: translate(-50%, 0);
+  position: fixed;
   color: var(--fg);
   font-size: 13px;
-  animation: float 700ms ease-out forwards;
+  line-height: 1;
+  animation: floatFromTap 700ms ease-out forwards;
   pointer-events: none;
+  z-index: 41;
+  white-space: nowrap;
 }
 
 .bottom {
@@ -319,15 +320,125 @@ input {
   }
 }
 
-@keyframes float {
+@keyframes floatFromTap {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -40%);
+  }
   to {
-    transform: translate(-50%, -28px);
+    opacity: 0;
+    transform: translate(-50%, calc(-40% - 44px));
+  }
+}
+
+.ticker {
+  display: inline-flex;
+  align-items: baseline;
+  font-variant-numeric: tabular-nums;
+}
+
+.tick-char {
+  position: relative;
+  display: inline-block;
+  width: 0.62em;
+  height: 1.15em;
+  overflow: hidden;
+  text-align: center;
+}
+
+.tick-char.is-dot {
+  width: 0.3em;
+  overflow: visible;
+}
+
+.tick-out,
+.tick-in {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1.15em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform, filter, opacity;
+}
+
+.tick-up .tick-out {
+  animation: tickOutDown 220ms ease-in forwards;
+}
+
+.tick-up .tick-in {
+  animation: tickInDown 220ms ease-out forwards;
+}
+
+.tick-down .tick-out {
+  animation: tickOutUp 220ms ease-in forwards;
+}
+
+.tick-down .tick-in {
+  animation: tickInUp 220ms ease-out forwards;
+}
+
+@keyframes tickOutDown {
+  from {
+    transform: translateY(0);
+    filter: blur(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(115%);
+    filter: blur(5px);
     opacity: 0;
   }
 }
 
-.shell.hit .price {
-  opacity: 0.82;
+@keyframes tickInDown {
+  from {
+    transform: translateY(-115%);
+    filter: blur(5px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+@keyframes tickOutUp {
+  from {
+    transform: translateY(0);
+    filter: blur(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-115%);
+    filter: blur(5px);
+    opacity: 0;
+  }
+}
+
+@keyframes tickInUp {
+  from {
+    transform: translateY(115%);
+    filter: blur(5px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tick-out,
+  .tick-in,
+  .floater,
+  .pulse {
+    animation: none !important;
+  }
 }
 
 .page {

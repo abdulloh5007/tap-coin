@@ -7,12 +7,13 @@ import {
   type Snapshot,
   type Tick,
 } from "../api.ts"
-import { formatCountdown, formatGas, formatInt, formatPrice } from "../format.ts"
+import { formatCountdown, formatGas, formatInt } from "../format.ts"
+import { TickerPrice } from "../components/TickerPrice.tsx"
 import { useSettings } from "../SettingsContext.tsx"
 
 type Point = { ts: number; price: number }
 type Pulse = { id: number; x: number; y: number }
-type Floater = { id: number; text: string }
+type Floater = { id: number; text: string; x: number; y: number }
 
 function isUiTarget(el: EventTarget | null): boolean {
   return Boolean(
@@ -134,7 +135,10 @@ export function Main({
     setHit(true)
     window.setTimeout(() => setHit(false), 80)
     setPulses((p) => [...p.slice(-12), { id, x: e.clientX, y: e.clientY }])
-    setFloaters((f) => [...f.slice(-8), { id, text: `+${formatGas(gasRef.current)}` }])
+    setFloaters((f) => [
+      ...f.slice(-8),
+      { id, text: `+${formatGas(gasRef.current)}`, x: e.clientX, y: e.clientY },
+    ])
     window.setTimeout(() => {
       setPulses((p) => p.filter((x) => x.id !== id))
       setFloaters((f) => f.filter((x) => x.id !== id))
@@ -171,7 +175,9 @@ export function Main({
 
       <section className="price-block">
         <div className="label">Цена</div>
-        <div className="price num">{formatPrice(snap.price)}</div>
+        <div className="price num">
+          <TickerPrice value={snap.price} />
+        </div>
         <div className="meta">
           <span>
             тапают <b className="num">{formatInt(snap.activeUsers)}</b>
@@ -193,14 +199,6 @@ export function Main({
 
       <div className="tap-zone">
         <div className="hint">нажмите на экран</div>
-        {pulses.map((p) => (
-          <span key={p.id} className="pulse" style={{ left: p.x, top: p.y }} />
-        ))}
-        {floaters.map((f) => (
-          <span key={f.id} className="floater num">
-            {f.text}
-          </span>
-        ))}
       </div>
 
       <footer className="bottom">
@@ -213,6 +211,14 @@ export function Main({
           <b className="num">{formatGas(snap.me.gasoline)}</b>
         </div>
       </footer>
+      {pulses.map((p) => (
+        <span key={p.id} className="pulse" style={{ left: p.x, top: p.y }} />
+      ))}
+      {floaters.map((f) => (
+        <span key={f.id} className="floater num" style={{ left: f.x, top: f.y }}>
+          {f.text}
+        </span>
+      ))}
     </div>
   )
 }
