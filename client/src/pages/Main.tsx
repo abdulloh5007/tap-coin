@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react"
 import { PriceChart } from "../components/PriceChart.tsx"
 import {
   getToken,
@@ -8,12 +8,28 @@ import {
   type Tick,
 } from "../api.ts"
 import { formatCountdown, formatGas, formatInt, formatPrice } from "../format.ts"
+import { useSettings } from "../SettingsContext.tsx"
 
 type Point = { ts: number; price: number }
 type Pulse = { id: number; x: number; y: number }
 type Floater = { id: number; text: string }
 
-export function Main({ onLogout }: { onLogout: () => void }) {
+function isUiTarget(el: EventTarget | null): boolean {
+  return Boolean(
+    (el as HTMLElement | null)?.closest?.(
+      "button, a, input, textarea, label, .chart-wrap, .seg, .color-row",
+    ),
+  )
+}
+
+export function Main({
+  onLogout,
+  onSettings,
+}: {
+  onLogout: () => void
+  onSettings: () => void
+}) {
+  const { settings, colors, theme } = useSettings()
   const [snap, setSnap] = useState<Pick<
     Snapshot,
     "price" | "activeUsers" | "online" | "gasolinePerTap" | "session" | "me"
@@ -28,6 +44,8 @@ export function Main({ onLogout }: { onLogout: () => void }) {
   const wsRef = useRef<WebSocket | null>(null)
   const gasRef = useRef(1)
   const idRef = useRef(0)
+  const lastTapAt = useRef(0)
+  const ignoreMouseUntil = useRef(0)
   const [extra, setExtra] = useState(0)
 
   const syncExtra = () => setExtra(pending.current + inFlight.current)
@@ -68,8 +86,8 @@ export function Main({ onLogout }: { onLogout: () => void }) {
           setExtra(pending.current)
           setPoints((prev) => {
             const next = [...prev, { ts: msg.ts, price: msg.price }]
-            const cut = msg.ts - 5 * 60 * 1000
-            return next.filter((p) => p.ts >= cut).slice(-1200)
+            const cut = msg.ts - 15 * 60 * 1000
+            return next.filter((p) => p.ts >= cut).slice(-3600)
           })
         }
       }
@@ -98,11 +116,17 @@ export function Main({ onLogout }: { onLogout: () => void }) {
     }
   }, [])
 
-  const lastTapAt = useRef(0)
-  const tap = useCallback((e: { target: EventTarget | null; clientX: number; clientY: number }) => {
-    if ((e.target as HTMLElement | null)?.closest?.("button")) return
+  const tap = useCallback((e: PointerEvent) => {
+    if (!e.isPrimary) return
+    if (e.pointerType === "mouse" && e.button !== 0) return
+    if (e.pointerType === "touch" || e.pointerType === "pen") {
+      ignoreMouseUntil.current = performance.now() + 700
+    } else if (e.pointerType === "mouse" && performance.now() < ignoreMouseUntil.current) {
+      return
+    }
+    if (isUiTarget(e.target)) return
     const t = performance.now()
-    if (t - lastTapAt.current < 18) return
+    if (t - lastTapAt.current < 40) return
     lastTapAt.current = t
     pending.current += 1
     syncExtra()
@@ -132,16 +156,17 @@ export function Main({ onLogout }: { onLogout: () => void }) {
   }
 
   return (
-    <div
-      className={`shell${hit ? " hit" : ""}`}
-      onPointerDown={tap}
-      onClick={tap}
-    >
+    <div className={`shell${hit ? " hit" : ""}`} onPointerDown={tap}>
       <header className="top">
         <span>Tap Coin</span>
-        <button type="button" onClick={logout}>
-          выход
-        </button>
+        <span className="top-actions">
+          <button type="button" onClick={onSettings}>
+            настройки
+          </button>
+          <button type="button" onClick={logout}>
+            выход
+          </button>
+        </span>
       </header>
 
       <section className="price-block">
@@ -164,9 +189,7 @@ export function Main({ onLogout }: { onLogout: () => void }) {
         </div>
       </section>
 
-      <div className="chart-wrap">
-        <PriceChart points={points} />
-      </div>
+      <PriceChart points={points} type={settings.chartType} colors={colors} theme={theme} />
 
       <div className="tap-zone">
         <div className="hint">нажмите на экран</div>

@@ -19,6 +19,15 @@ export function formatInt(n: number): string {
   return Math.floor(n).toLocaleString("ru-RU")
 }
 
+export function formatAxisPrice(n: number): string {
+  if (!Number.isFinite(n) || n <= 0) return "0"
+  if (n >= 1) return n.toFixed(4)
+  if (n >= 0.01) return n.toFixed(6)
+  const exp = Math.floor(Math.log10(n))
+  const mant = n / 10 ** exp
+  return `${mant.toFixed(3)}e${exp}`
+}
+
 export function formatCountdown(until: number, now: number): string {
   const ms = Math.max(0, until - now)
   const total = Math.floor(ms / 1000)

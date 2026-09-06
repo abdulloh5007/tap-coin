@@ -1,9 +1,22 @@
-:root {
+:root,
+html[data-theme="dark"] {
   --bg: #070707;
   --fg: #f3f3f3;
   --muted: #7d7d7d;
   --hair: #222;
   --dim: #111;
+  --btn: #f3f3f3;
+  --btn-fg: #070707;
+}
+
+html[data-theme="light"] {
+  --bg: #f3f3f1;
+  --fg: #111111;
+  --muted: #6b6b6b;
+  --hair: #d8d8d4;
+  --dim: #ececea;
+  --btn: #111111;
+  --btn-fg: #f3f3f1;
 }
 
 * {
@@ -108,8 +121,8 @@ input {
 
 .auth button[type="submit"] {
   margin-top: 16px;
-  background: var(--fg);
-  color: var(--bg);
+  background: var(--btn);
+  color: var(--btn-fg);
   border: 0;
   padding: 12px;
   cursor: pointer;
@@ -129,9 +142,10 @@ input {
 }
 
 .error {
-  color: #cfcfcf;
+  color: var(--fg);
   font-size: 13px;
   min-height: 1.2em;
+  opacity: 0.75;
 }
 
 .shell {
@@ -151,6 +165,15 @@ input {
   font-size: 12px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+}
+
+.top-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.top-spacer {
+  width: 48px;
 }
 
 .top button {
@@ -200,14 +223,35 @@ input {
   border-top: 1px solid var(--hair);
   border-bottom: 1px solid var(--hair);
   position: relative;
-  min-height: 140px;
+  min-height: 160px;
   overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+}
+
+.chart-wrap:active {
+  cursor: grabbing;
 }
 
 .chart-wrap canvas {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.live-btn {
+  position: absolute;
+  left: 10px;
+  bottom: 8px;
+  background: var(--fg);
+  color: var(--bg);
+  border: 0;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  cursor: pointer;
+  z-index: 2;
 }
 
 .tap-zone {
@@ -232,7 +276,7 @@ input {
   position: absolute;
   width: 14px;
   height: 14px;
-  border: 1px solid rgba(243, 243, 243, 0.45);
+  border: 1px solid color-mix(in srgb, var(--fg) 45%, transparent);
   border-radius: 50%;
   transform: translate(-50%, -50%);
   animation: ring 420ms ease-out forwards;
@@ -284,4 +328,80 @@ input {
 
 .shell.hit .price {
   opacity: 0.82;
+}
+
+.page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings {
+  padding: 8px 20px 40px;
+  max-width: 420px;
+}
+
+.settings h2 {
+  margin: 28px 0 12px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.seg {
+  display: flex;
+  border: 1px solid var(--hair);
+}
+
+.seg button {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  border-right: 1px solid var(--hair);
+  color: var(--muted);
+  padding: 10px 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.seg button:last-child {
+  border-right: 0;
+}
+
+.seg button.on {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.color-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hair);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.color-row input[type="color"] {
+  width: 36px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--hair);
+  background: transparent;
+  cursor: pointer;
+}
+
+.hint-text {
+  margin-top: 28px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+  user-select: text;
+}
+
+.settings .ghost {
+  margin-top: 16px;
 }
